@@ -33,17 +33,17 @@ contract LiquidityStakingContract is IStakingContract,ERC20{
     override
     view	
     returns (uint256 rate){
-        console.log("The current block number is %s",block.number);
-        console.log("the last updated block number is %s",lastUpdatedBlockNumber);
-        console.log("the total supply of stake tokens here is %s",totalSupply());
-        console.log("The zamp token deposit is %s",totalDeposits);
+        // console.log("The current block number is %s",block.number);
+        // console.log("the last updated block number is %s",lastUpdatedBlockNumber);
+        // console.log("the total supply of stake tokens here is %s",totalSupply());
+        // console.log("The zamp token deposit is %s",totalDeposits);
         if (totalSupply() == 0 || lastUpdatedBlockNumber == 0){//initially when no deposit is there or when all the tokens are taken out
-            console.log("Current rate is 1");
+            // console.log("Current rate is 1");
             return 1e18;//1 stkZamp Token is equal to 1 Zamp token
         }else{
-            console.log("hey from here");
-            rate = (totalDeposits + (block.number - lastUpdatedBlockNumber)*1e18)*1e18/totalSupply();
-            console.log("Current rate is %s",rate);
+            // console.log("hey from here");
+            rate = (totalDeposits + (block.number - lastUpdatedBlockNumber)*1e18)*1e18/totalSupply();//muliplication by 1e18 is done to handle decimal points accurately
+            // console.log("Current rate is %s",rate);
             return rate;// (Total Zamp Tokens / Total stkZamp tokens) -> gives value of how many zamp tokens are equal to 1 stkZamp token
         }
         

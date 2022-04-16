@@ -65,7 +65,7 @@ describe("Liquidity staking contract", function () {
     })
 
     describe("Checking the core functionalities",async()=>{
-        it("Checking the deposit functionality",async()=>{
+        it("Checking the deposit and redeem functionality",async()=>{
             //transferring the funds from the zampToken Contract to the staking contract
             //will be used to provide rewards per block
             await zampToken.connect(zampTokenOwner).transfer(stakingToken.address,toWei(1000));
@@ -102,7 +102,37 @@ describe("Liquidity staking contract", function () {
             await stakingToken.connect(ravi).deposit(toWei(10));
             
             expect(fromWei(await stakingToken.getRate())).to.equal("1.30909090909090909");
+
+            //checking the total zamp token balance of the staking token contract
+            expect(await zampToken.balanceOf(stakingToken.address)).equal(toWei(1030));//1000 was originally minted to distribute as staking rewards per block and 30 from 3 different users
+
+            //checking the redeem functionality
+            expect(fromWei(await stakingToken.balanceOf(bob.address))).to.equal("10.0");//stkTokens possesed by bob - 10 stkTokens 
+            expect(fromWei(await stakingToken.getRate())).to.equal('1.30909090909090909');//getting the current rate - 1.309
+            await stakingToken.connect(bob).redeem(toWei(10));
+
+            //because redeem only burns the stkTokens and issues a receipt with cooldown period of 1 hour
+            expect(fromWei(await zampToken.balanceOf(bob.address))).to.equal("90.0");
+
+            //stkTokens should be 0 for bob because it is burned by calling redeem
+            expect(fromWei(await stakingToken.balanceOf(bob.address))).to.equal("0.0");
+
+            //checking the claiming functionality
+
+            await expect(stakingToken.connect(bob).claim()).to.be.revertedWith('An hour cooldown period not over');
+
+            // mine 1000 blocks with an interval of 1 minute means 1000 minutes
+            await hre.network.provider.send("hardhat_mine", ["0x3e8", "0x3c"]);
+
+            //Now the 1 hour cooldown period has already passed and we should be able to claim zamp tokens
+            await stakingToken.connect(bob).claim();
+
+            //Checking if the rewards of about 13 zampTokens is added or not
+           expect(Number(fromWei(await zampToken.balanceOf(bob.address)))).greaterThan(103);
+            
         })
+
+        
     })
 
   
