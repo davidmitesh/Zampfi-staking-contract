@@ -74,6 +74,7 @@ contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
             _mint(msg.sender,stakedTokenOut);
 
             //emit an event
+            emit Deposited(msg.sender, amountToDeposit);
         }
 
     
@@ -101,6 +102,7 @@ contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
         Receipts[msg.sender].coolDownInstant = block.timestamp + 3600;
 
         //emit an event
+        emit Redeemed(msg.sender, stakedTokenAmountToRedeem);
     }
 
 
@@ -125,6 +127,7 @@ contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
         zampToken.safeTransfer(msg.sender,claimedTokenAmount);//executing the receipt details
         Receipts[msg.sender].zampAmount = 0;
         Receipts[msg.sender].coolDownInstant = 0;
+        emit Claimed(msg.sender, claimedTokenAmount);
     }
 
     //To pause or unpause the contract in case of emergency
@@ -137,9 +140,11 @@ contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
     }
 
 
+    /* ========== EVENTS ========== */
+
     
-
-
-
+    event Deposited(address indexed user, uint256 amountToDeposit);
+    event Redeemed(address indexed user, uint256 stakedTokenAmountToRedeem);
+    event Claimed(address indexed user, uint256 claimedTokenAmount);
 
 }
