@@ -133,8 +133,21 @@ describe("Liquidity staking contract", function () {
         })
 
 
-        it("Should check the pausable functionality",async()=>{
+        it("Should check the pausable and ownable functionality",async()=>{
+            //checking the owner of staking contract
+            expect(await stakingToken.owner()).equal(stakingTokenOwner.address);
+
+            //The contract should be in unpaused state initially
+            expect(await stakingToken.paused()).equal(false);
+
+            //Should throw an error if user other than owner tries to pause
+            await expect(stakingToken.connect(bob).pause()).to.be.revertedWith('Ownable: caller is not the owner');
+            await expect(stakingToken.connect(alice).pause()).to.be.revertedWith('Ownable: caller is not the owner');
             
+            //Pausing the contract using the owner
+            await stakingToken.connect(stakingTokenOwner).pause();
+            expect(await stakingToken.paused()).equal(true);
+
         })
 
         

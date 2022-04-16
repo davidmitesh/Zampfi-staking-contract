@@ -29,6 +29,8 @@ contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
         zampToken = IERC20(tokenAddress);
     }
 
+
+
     function getRate() 
     public
     override
@@ -124,5 +126,20 @@ contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
         Receipts[msg.sender].zampAmount = 0;
         Receipts[msg.sender].coolDownInstant = 0;
     }
+
+    //To pause or unpause the contract in case of emergency
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
+
+
+    
+
+
+
 
 }
