@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interfaces/IStakingContract.sol";
+import "hardhat/console.sol";
 
 
 contract LiquidityStakingContract is IStakingContract,ERC20{
@@ -32,11 +33,20 @@ contract LiquidityStakingContract is IStakingContract,ERC20{
     override
     view	
     returns (uint256 rate){
+        console.log("The current block number is %s",block.number);
+        console.log("the last updated block number is %s",lastUpdatedBlockNumber);
+        console.log("the total supply of stake tokens here is %s",totalSupply());
+        console.log("The zamp token deposit is %s",totalDeposits);
         if (totalSupply() == 0 || lastUpdatedBlockNumber == 0){//initially when no deposit is there or when all the tokens are taken out
-            rate = 1;//1 stkZamp Token is equal to 1 Zamp token
+            console.log("Current rate is 1");
+            return 1e18;//1 stkZamp Token is equal to 1 Zamp token
         }else{
-            rate = (totalDeposits + (block.number - lastUpdatedBlockNumber))/totalSupply();// (Total Zamp Tokens / Total stkZamp tokens) -> gives value of how many zamp tokens are equal to 1 stkZamp token
+            console.log("hey from here");
+            rate = (totalDeposits + (block.number - lastUpdatedBlockNumber)*1e18)*1e18/totalSupply();
+            console.log("Current rate is %s",rate);
+            return rate;// (Total Zamp Tokens / Total stkZamp tokens) -> gives value of how many zamp tokens are equal to 1 stkZamp token
         }
+        
     }
 
     function deposit(uint256 amountToDeposit) external
@@ -50,10 +60,10 @@ contract LiquidityStakingContract is IStakingContract,ERC20{
                 startBlockNumber = block.number;
             }
 
-            stakedTokenOut = amountToDeposit/getRate();//getting the amount of stakeZamp tokens to be minted to depositer
+            stakedTokenOut = (amountToDeposit*1e18)/getRate();//getting the amount of stakeZamp tokens to be minted to depositer
 
             //Adding the deposited zamp amount to reflect in totalDeposits and also rewards to that point is reflected
-            totalDeposits += (block.number - lastUpdatedBlockNumber) + amountToDeposit;
+            totalDeposits += (block.number - lastUpdatedBlockNumber)*1e18 + amountToDeposit;
             lastUpdatedBlockNumber = block.number;//lastUpdatedBlockNumber updated here
 
             
@@ -71,10 +81,10 @@ contract LiquidityStakingContract is IStakingContract,ERC20{
         require(balanceOf(msg.sender) >= stakedTokenAmountToRedeem,"not enough stkTokens to redeem");
         require(Receipts[msg.sender].zampAmount == 0,"First claim the already redeemed amount to redeem further");
 
-        tokenAmountOut = stakedTokenAmountToRedeem * getRate();//getting the equivalent amount of zamp tokens that are equivalent to the stkZamp tokens submitted for burning
+        tokenAmountOut = (stakedTokenAmountToRedeem * getRate())/1e18;//getting the equivalent amount of zamp tokens that are equivalent to the stkZamp tokens submitted for burning
 
          //Subtracting the equivalent zamp amount to reflect in totalDeposits and also rewards to that point is reflected
-        totalDeposits = totalDeposits - tokenAmountOut + (block.number - lastUpdatedBlockNumber);
+        totalDeposits = totalDeposits - tokenAmountOut + (block.number - lastUpdatedBlockNumber)*1e18;
         lastUpdatedBlockNumber = block.number;
 
         //buring the stkZamp tokens
@@ -95,7 +105,7 @@ contract LiquidityStakingContract is IStakingContract,ERC20{
     override
     view 
     returns (uint256 totalDeposit){
-        totalDeposit = totalDeposits - (lastUpdatedBlockNumber - startBlockNumber);//this returns only the deposits in the totalDeposits which does not include the reward
+        totalDeposit = totalDeposits - (lastUpdatedBlockNumber - startBlockNumber)*1e18;//this returns only the deposits in the totalDeposits which does not include the reward
     }
 
     function claim() 
