@@ -9,6 +9,16 @@ import "hardhat/console.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+
+/**
+ * @title Model ZampFi Staking Contract
+ * @notice Contract to stake Zamp tokens, and 1 zamp token is added to totalSupply each block.
+ *         The Liquidity tokens that are minted, are given out based on the current conversion 
+ *          rate between Zamp tokens and stkZamp tokens. Additional 1 hour cooldown period is 
+ *          added between the redeeming and the claiming phase.
+ * @author Mitesh Pandey (https://github.com/davidmitesh) (excelrock_mitesh@yahoo.com)
+ */
+
 contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
     using SafeERC20 for IERC20;
     using SafeERC20 for ERC20;
@@ -30,6 +40,7 @@ contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
     }
 
 
+    /* ========== NON MUTATIVE FUNCTIONS ========== */
 
     function getRate() 
     public
@@ -52,6 +63,22 @@ contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
         
     }
 
+
+    function getTotalDeposit() 
+    external 
+    override
+    view 
+    returns (uint256 totalDeposit){
+        totalDeposit = totalDeposits - (lastUpdatedBlockNumber - startBlockNumber)*1e18;//this returns only the deposits in the totalDeposits which does not include the reward
+    }
+
+    /* ========== MUTATIVE FUNCTIONS ========== */
+
+    /**
+   * @dev Deposits zamp tokens and mints equivalent stkZamp tokens
+   * @param amountToDeposit uint256 Amount of zamp tokens to deposit
+   * @return stakedTokenOut uint256 Amount of stkZamp tokens minted to msg.sender
+   **/
     function deposit(uint256 amountToDeposit) external 
     override
     whenNotPaused
@@ -77,7 +104,11 @@ contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
             emit Deposited(msg.sender, amountToDeposit);
         }
 
-    
+    /**
+   * @dev Redeems zamp tokens  equivalent to stkZamp tokens decided by the rate and puts it up on receipt which is claimable after the 1 hr cooldown
+   * @param stakedTokenAmountToRedeem uint256 Amount of stkZamp tokens to burn
+   * @return tokenAmountOut uint256 Amount of Zamp tokens put up for cooldown
+   **/
     function redeem(uint256 stakedTokenAmountToRedeem)
     external
     override
@@ -105,17 +136,10 @@ contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
         emit Redeemed(msg.sender, stakedTokenAmountToRedeem);
     }
 
-
-    
-
-    function getTotalDeposit() 
-    external 
-    override
-    view 
-    returns (uint256 totalDeposit){
-        totalDeposit = totalDeposits - (lastUpdatedBlockNumber - startBlockNumber)*1e18;//this returns only the deposits in the totalDeposits which does not include the reward
-    }
-
+    /**
+   * @dev For claiming the zamp tokens after 1 hour cooldown period
+   * @return claimedTokenAmount uint256 Amount of Zamp tokens transferred 
+   **/
     function claim() 
     external
     override 
@@ -129,6 +153,8 @@ contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
         Receipts[msg.sender].coolDownInstant = 0;
         emit Claimed(msg.sender, claimedTokenAmount);
     }
+
+    /* ========== SECURITY RELATED FUNCTIONS ========== */
 
     //To pause or unpause the contract in case of emergency
     function pause() external onlyOwner {
