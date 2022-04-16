@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 pragma solidity ^0.8.0;
 
 // import "openzeppelin/contracts/math/SafeMath.sol";
@@ -9,8 +11,8 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./interfaces/IStakingContract.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
-
-contract StakingContract is IStakingContract,ERC20,ReentrancyGuard, Pausable {
+import "@openzeppelin/contracts/access/Ownable.sol";
+contract StakingContract is IStakingContract,ERC20,ReentrancyGuard,Ownable, Pausable {
     
     using SafeERC20 for IERC20;
     using SafeERC20 for ERC20;
@@ -40,24 +42,24 @@ contract StakingContract is IStakingContract,ERC20,ReentrancyGuard, Pausable {
 
     constructor( 
         address _stakingToken
-    ) ERC20("STAKE-ZAMP-TOKENS", "stkZAMP") {
+    )  ERC20("STAKE-ZAMP-TOKENS", "stkZAMP") {
         require(_stakingToken != address(0), "invalid staking token address");
         stakingToken = IERC20(_stakingToken); 
     }
 
     /* ========== VIEWS ========== */
 
-    function getTotalDeposit() external view returns (uint256 totalDeposit) {
+    function getTotalDeposit() external override view returns (uint256 totalDeposit) {
         totalDeposit =  _totalSupply;
     }
 
-    function balanceOf(address account) external view returns (uint256) {
+    function balanceOf(address account) public view virtual override returns (uint256) {
         return _balances[account];
     }
 
     
 
-    function getRate() external view returns (uint256 rate) {
+    function getRate() external override view returns (uint256 rate) {
         if (_totalSupply == 0) {
             return rewardPerTokenStored;
         }
@@ -69,17 +71,18 @@ contract StakingContract is IStakingContract,ERC20,ReentrancyGuard, Pausable {
 
     
 
-    function deposit(uint256 amount) external nonReentrant notPaused updateReward(msg.sender)returns (uint256 stakedTokenOut) {
+    function deposit(uint256 amount) external override nonReentrant whenNotPaused updateReward(msg.sender)returns (uint256 stakedTokenOut) {
         require(amount > 0, "Cannot stake 0");
          _totalSupply += amount;
         _balances[msg.sender] += amount;
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
         _mint(msg.sender,amount);
         stakedTokenOut = amount;
-        emit Staked(msg.sender, amount);
+        emit Deposited(msg.sender, amount);
     }
+    
 
-    function redeem(uint256 amount) external nonReentrant updateReward(msg.sender) returns (uint256 tokenAmountOut){
+    function redeem(uint256 amount) external override nonReentrant whenNotPaused updateReward(msg.sender) returns (uint256 tokenAmountOut){
         require(amount > 0, "Cannot withdraw 0");
         _totalSupply -= amount;
         _balances[msg.sender] -= amount;
@@ -88,12 +91,12 @@ contract StakingContract is IStakingContract,ERC20,ReentrancyGuard, Pausable {
         userToRedeemTokensMapping[msg.sender].amountRedeemable = amount;
         userToRedeemTokensMapping[msg.sender].coolDownTime = block.timestamp + 3600;
         tokenAmountOut = amount+rewards[msg.sender];
-        // emit Withdrawn(msg.sender, amount);
+        emit Redeemed(msg.sender, amount);
     }
 
-    function claim() external nonReentrant updateReward(msg.sender) returns (uint256 claimedTokenAmount) {
+    function claim() external override nonReentrant whenNotPaused updateReward(msg.sender) returns (uint256 claimedTokenAmount) {
         uint256 tokensToRedeem = userToRedeemTokensMapping[msg.sender].amountRedeemable;
-        unit256 cooldownTime = userToRedeemTokensMapping[msg.sender].coolDownTime;
+        uint256 cooldownTime = userToRedeemTokensMapping[msg.sender].coolDownTime;
         
         require(tokensToRedeem> 0,"Not found any redeemable tokens");
         require(cooldownTime < block.timestamp,"Cooldown period is not over");
@@ -130,7 +133,7 @@ contract StakingContract is IStakingContract,ERC20,ReentrancyGuard, Pausable {
 
     modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
-        lastUpdateTime = block.number;
+        lastUpdateBlockNumber = block.number;
 
         rewards[account] = earned(account);
         userRewardPerTokenPaid[account] = rewardPerTokenStored;
@@ -139,9 +142,9 @@ contract StakingContract is IStakingContract,ERC20,ReentrancyGuard, Pausable {
 
     /* ========== EVENTS ========== */
 
-    event RewardAdded(uint256 reward);
+    
     event Deposited(address indexed user, uint256 amount);
     event Redeemed(address indexed user, uint256 amount);
-    event RewardPaid(address indexed user, uint256 reward);
+    event Claimed(address indexed user, uint256 reward);
    
 }
