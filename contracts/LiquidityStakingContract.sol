@@ -6,11 +6,10 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./interfaces/IStakingContract.sol";
 import "hardhat/console.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-contract LiquidityStakingContract is IStakingContract,ERC20,ReentrancyGuard,Ownable, Pausable{
+contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
     using SafeERC20 for IERC20;
     using SafeERC20 for ERC20;
 
@@ -53,7 +52,6 @@ contract LiquidityStakingContract is IStakingContract,ERC20,ReentrancyGuard,Owna
 
     function deposit(uint256 amountToDeposit) external 
     override
-    nonReentrant 
     whenNotPaused
         returns (uint256 stakedTokenOut){
             require(amountToDeposit>0,"Not valid Zamp amount");
@@ -80,7 +78,6 @@ contract LiquidityStakingContract is IStakingContract,ERC20,ReentrancyGuard,Owna
     function redeem(uint256 stakedTokenAmountToRedeem)
     external
     override
-    nonReentrant 
     whenNotPaused
     returns (uint256 tokenAmountOut){
         
@@ -118,7 +115,6 @@ contract LiquidityStakingContract is IStakingContract,ERC20,ReentrancyGuard,Owna
     function claim() 
     external
     override 
-    nonReentrant 
     whenNotPaused
     returns (uint256 claimedTokenAmount){
         claimedTokenAmount = Receipts[msg.sender].zampAmount;

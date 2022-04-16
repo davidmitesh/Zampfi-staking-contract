@@ -132,6 +132,11 @@ describe("Liquidity staking contract", function () {
             
         })
 
+
+        it("Should check the pausable functionality",async()=>{
+            
+        })
+
         
     })
 
