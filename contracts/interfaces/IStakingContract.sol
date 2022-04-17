@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 interface IStakingContract {
+
  function deposit(uint256 amountToDeposit)
         external
         returns (uint256 stakedTokenOut);

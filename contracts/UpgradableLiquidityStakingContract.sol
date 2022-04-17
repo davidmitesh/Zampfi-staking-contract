@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol";
 import "./interfaces/IStakingContract.sol";
 import "hardhat/console.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
 
 /**
@@ -19,9 +20,9 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @author Mitesh Pandey (https://github.com/davidmitesh) (excelrock_mitesh@yahoo.com)
  */
 
-contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
-    using SafeERC20 for IERC20;
-    using SafeERC20 for ERC20;
+contract UpgradableLiquidityStakingContract is IStakingContract,Initializable,ERC20Upgradeable,OwnableUpgradeable, PausableUpgradeable{
+    using SafeERC20Upgradeable for IERC20Upgradeable;
+    using SafeERC20Upgradeable for ERC20Upgradeable;
 
     //This struct is used to keep the record of the zampAmount that is scheduled to be claimed
     struct ClaimReceipt{
@@ -32,11 +33,15 @@ contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
     uint256 lastUpdatedBlockNumber;//stores the last blocknumber upto which the rewards are reflected in the totalDeposits
     uint256 startBlockNumber;//Initial starting block number from which the first deposit happens in contract
     uint256 totalDeposits;//Total zamp tokens deposits  in the contract with rewards added upto lastUpdatedBlockNumber
-    IERC20 public zampToken;//The erc20 Zamp token
+    IERC20Upgradeable public zampToken;//The erc20 Zamp token
     mapping(address => ClaimReceipt) Receipts;
 
-    constructor(address tokenAddress) ERC20("ZampStakeTokens","stkZamp"){
-        zampToken = IERC20(tokenAddress);
+    //Initializer in the implementation contract, only called once
+    function initialize(address tokenAddress) external initializer{
+        __ERC20_init("ZampStakeTokens","stkZamp");
+        __Ownable_init();
+        __Pausable_init();
+        zampToken = IERC20Upgradeable(tokenAddress);
     }
 
 
