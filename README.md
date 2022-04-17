@@ -1,16 +1,29 @@
-# Basic Sample Hardhat Project
+# Liquidity Staking Contract
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+A [simple staking contract](https://github.com/davidmitesh/Zampfi-staking-contract/blob/main/contracts/LiquidityStakingContract.sol) that is intended to incentivize the investors to hold the ERC20 tokens by providing them interest rate(reward) based on the amount of stake they put in the contract.
 
-Try running some of the following tasks:
+
+
+## Features
+
+- Staking contract can be implemented for any ERC20 token(mostly done for new tokens to increase its holding and sales)
+- Upon staking tokens,LP tokens are issued to staker, which opens new world of Defi possibilities
+- Rewards are minted per blocks and distributed in accordance to the amount of LP tokens a staker holds
+- No loopings are used, and functions are kept as simple as possible to make the functions gas efficient
+- safeERC20 is utilized which reverts in case of failure
+- In between the redeeming and claiming phase, an hour cooldown period is added
+- Gas profiler added to view the gas cost of each function
+- A succinct test is written which is available [here](https://github.com/davidmitesh/Zampfi-staking-contract/blob/main/test/liquidity-staking-test.js)
+
+
+## Try on your own
 
 ```shell
-npx hardhat accounts
+git clone https://github.com/davidmitesh/Zampfi-staking-contract.git
+npm install
 npx hardhat compile
-npx hardhat clean
 npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
 ```
-# Zampfi-staking-contract
+
+##
+
