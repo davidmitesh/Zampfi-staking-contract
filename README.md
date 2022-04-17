@@ -14,6 +14,7 @@ An upgradeable version of this contract is found [here](https://github.com/david
 - In between the redeeming and claiming phase, an hour cooldown period is added
 - Gas profiler added to view the gas cost of each function
 - A succinct test is written which is available [here](https://github.com/davidmitesh/Zampfi-staking-contract/blob/main/test/liquidity-staking-test.js)
+- Upgradeable version of contract is also available
 
 
 ## Try on your own
