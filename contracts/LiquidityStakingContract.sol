@@ -84,18 +84,20 @@ contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
     whenNotPaused
         returns (uint256 stakedTokenOut){
             require(amountToDeposit>0,"Not valid Zamp amount");
+            uint256 lastBlockNumber = lastUpdatedBlockNumber;//for gas optimization
+            uint256 currentBlockNumber = block.number;//for gas optimization
             zampToken.safeTransferFrom(msg.sender,address(this),amountToDeposit);
-            if (lastUpdatedBlockNumber == 0)//first deposit
+            if (lastBlockNumber == 0)//first deposit
             {
-                lastUpdatedBlockNumber = block.number;
-                startBlockNumber = block.number;
+                lastBlockNumber = currentBlockNumber;
+                startBlockNumber = currentBlockNumber;
             }
 
             stakedTokenOut = (amountToDeposit*1e18)/getRate();//getting the amount of stakeZamp tokens to be minted to depositer
 
             //Adding the deposited zamp amount to reflect in totalDeposits and also rewards to that point is reflected
-            totalDeposits += (block.number - lastUpdatedBlockNumber)*1e18 + amountToDeposit;
-            lastUpdatedBlockNumber = block.number;//lastUpdatedBlockNumber updated here
+            totalDeposits += (currentBlockNumber - lastBlockNumber)*1e18 + amountToDeposit;
+            lastUpdatedBlockNumber = currentBlockNumber;//lastUpdatedBlockNumber updated here
 
             
             _mint(msg.sender,stakedTokenOut);
@@ -118,12 +120,12 @@ contract LiquidityStakingContract is IStakingContract,ERC20,Ownable, Pausable{
         require(stakedTokenAmountToRedeem>0,"Invalid Amount");
         require(balanceOf(msg.sender) >= stakedTokenAmountToRedeem,"not enough stkTokens to redeem");
         require(Receipts[msg.sender].zampAmount == 0,"First claim the already redeemed amount to redeem further");
-
+        uint256 blockNumber = block.number;
         tokenAmountOut = (stakedTokenAmountToRedeem * getRate())/1e18;//getting the equivalent amount of zamp tokens that are equivalent to the stkZamp tokens submitted for burning
 
          //Subtracting the equivalent zamp amount to reflect in totalDeposits and also rewards to that point is reflected
-        totalDeposits = totalDeposits - tokenAmountOut + (block.number - lastUpdatedBlockNumber)*1e18;
-        lastUpdatedBlockNumber = block.number;
+        totalDeposits = totalDeposits - tokenAmountOut + (blockNumber - lastUpdatedBlockNumber)*1e18;
+        lastUpdatedBlockNumber = blockNumber;
 
         //buring the stkZamp tokens
         _burn(msg.sender,stakedTokenAmountToRedeem);
