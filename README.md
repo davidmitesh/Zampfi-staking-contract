@@ -2,7 +2,7 @@
 
 A [simple staking contract](https://github.com/davidmitesh/Zampfi-staking-contract/blob/main/contracts/LiquidityStakingContract.sol) that is intended to incentivize the investors to hold the ERC20 tokens by providing them interest rate(reward) based on the amount of stake they put in the contract.
 
-An upgradeable version of this contract is found [here](https://github.com/davidmitesh/Zampfi-staking-contract/blob/upgradable-staking-contract/contracts/UpgradableLiquidityStakingContract.sol)
+An upgradeable version of this contract is found [here](https://github.com/davidmitesh/Zampfi-staking-contract/blob/main/contracts/UpgradableLiquidityStakingContract.sol)
 
 ## Features
 
